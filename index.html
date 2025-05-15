@@ -2,75 +2,133 @@
 <html lang="sr">
 <head>
   <meta charset="UTF-8">
-  <title>ChatZid</title>
+  <title>💬 ChatZid</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Firebase compat biblioteke -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 700px;
-      margin: auto;
-      padding: 20px;
-      background-color: #f9f9f9;
-      transition: background 0.3s, color 0.3s;
-    }
-    body.dark {
-      background-color: #1a1a1a;
-      color: #eee;
-    }
-    #messages {
-      border: 1px solid #ccc;
-      padding: 10px;
-      height: 400px;
-      overflow-y: scroll;
-      background: #fff;
-    }
-    body.dark #messages {
-      background: #2c2c2c;
-    }
-    .msg {
-      margin-bottom: 10px;
-    }
-    .msg small {
-      display: block;
-      font-size: 10px;
-      color: gray;
-    }
-    #message-form {
-      display: flex;
-      gap: 5px;
-      margin-top: 10px;
-    }
-    #message-form input {
-      flex: 1;
-      padding: 10px;
-    }
-    #message-form button {
-      padding: 10px;
-    }
-    #admin-panel {
-      display: none;
-      margin-top: 10px;
-    }
-    #typing-indicator {
-      font-size: 12px;
-      color: gray;
-    }
-    .reaction {
-      cursor: pointer;
-      margin-left: 5px;
-    }
-    .delete-btn {
-      color: red;
-      cursor: pointer;
-      font-size: 12px;
-      margin-left: 10px;
-    }
-  </style>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/684/684908.png" type="image/png">
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    background: linear-gradient(to right, #e0f7fa, #ffffff);
+    color: #333;
+    transition: background 0.3s, color 0.3s;
+  }
+  body.dark {
+    background: linear-gradient(to right, #1e1e2f, #2c2c3e);
+    color: #eee;
+  }
+
+  h1::before {
+    content: "💬 ";
+  }
+
+  #messages {
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 400px;
+    overflow-y: scroll;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  body.dark #messages {
+    background: #2c2c2c;
+    border-color: #444;
+  }
+
+  .msg {
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+  }
+  .msg small {
+    display: block;
+    font-size: 10px;
+    color: gray;
+  }
+
+  input, button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  input {
+    background-color: #f0f0f0;
+    flex: 1;
+  }
+
+  body.dark input {
+    background-color: #3a3a3a;
+    color: #fff;
+  }
+
+  #message-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  #message-form button {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  #message-form button:hover {
+    background-color: #0056b3;
+  }
+
+  button {
+    background-color: #00897b;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover {
+    background-color: #00695c;
+  }
+
+  #search {
+    width: 100%;
+    margin: 10px 0;
+  }
+
+  #admin-password {
+    width: 60%;
+  }
+
+  #admin-panel button {
+    background-color: #c62828;
+  }
+
+  .reaction {
+    cursor: pointer;
+    margin-left: 8px;
+    font-size: 16px;
+  }
+
+  .delete-btn {
+    color: red;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 10px;
+  }
+
+  #typing-indicator {
+    font-style: italic;
+    color: #777;
+    margin-top: 5px;
+  }
+</style>
 </head>
 <body>
   <h1>ChatZid</h1>
