@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>ChatZid</title>
+  
+  <!-- ✅ Firebase compat biblioteke -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
   <style>
     body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
     #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
@@ -20,25 +25,20 @@
     <button type="submit">Pošalji</button>
   </form>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-
   <script>
-    // TODO: Zameni sledeću konfiguraciju sa svojom Firebase konfiguracijom
     const firebaseConfig = {
-  apiKey: "AIzaSyD3wxyzAbcdEfgh1234567890",
-  authDomain: "mojprojekat.firebaseapp.com",
-  databaseURL: "https://mojprojekat-default-rtdb.firebaseio.com",
-  projectId: "mojprojekat",
-  storageBucket: "mojprojekat.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcd1234efgh5678"
+  apiKey: "AIzaSyBvW11X6f7R0hnoOA84l5WjY6ZYlEjgWGM",
+  authDomain: "chatzid-3f30d.firebaseapp.com",
+  databaseURL: "https://chatzid-3f30d-default-rtdb.firebaseio.com",
+  projectId: "chatzid-3f30d",
+  storageBucket: "chatzid-3f30d.appspot.com",
+  messagingSenderId: "332600317551",
+  appId: "1:332600317551:web:15710d3553991ce3ce1f9a",
+  measurementId: "G-ZK6W0F802V"
 };
 
-
-    // Inicijalizacija Firebase-a
-    const app = firebase.initializeApp(firebaseConfig);
+    // ✅ Inicijalizacija Firebase-a
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const messagesDiv = document.getElementById('messages');
@@ -46,7 +46,7 @@
     const nameInput = document.getElementById('name');
     const messageInput = document.getElementById('message');
 
-    // Prikaz poruka
+    // ✅ Prikaz poruka
     db.ref('messages').on('child_added', (snapshot) => {
       const msg = snapshot.val();
       const msgDiv = document.createElement('div');
@@ -55,7 +55,7 @@
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
 
-    // Slanje poruke
+    // ✅ Slanje poruke
     messageForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const name = nameInput.value.trim();
