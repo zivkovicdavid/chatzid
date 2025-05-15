@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ChatZid</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+    #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+    #message-form { margin-top: 10px; }
+    #message-form input { width: 80%; padding: 10px; }
+    #message-form button { padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>ChatZid</h1>
+  <div id="messages"></div>
+  <form id="message-form">
+    <input type="text" id="name" placeholder="Vaše ime" required />
+    <input type="text" id="message" placeholder="Vaša poruka" required />
+    <button type="submit">Pošalji</button>
+  </form>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+
+  <script>
+    // TODO: Zameni sledeću konfiguraciju sa svojom Firebase konfiguracijom
+    const firebaseConfig = {
+      apiKey: "VAŠ_API_KEY",
+      authDomain: "VAŠ_AUTH_DOMAIN",
+      databaseURL: "VAŠ_DATABASE_URL",
+      projectId: "VAŠ_PROJECT_ID",
+      storageBucket: "VAŠ_STORAGE_BUCKET",
+      messagingSenderId: "VAŠ_MESSAGING_SENDER_ID",
+      appId: "VAŠ_APP_ID"
+    };
+
+    // Inicijalizacija Firebase-a
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const messagesDiv = document.getElementById('messages');
+    const messageForm = document.getElementById('message-form');
+    const nameInput = document.getElementById('name');
+    const messageInput = document.getElementById('message');
+
+    // Prikaz poruka
+    db.ref('messages').on('child_added', (snapshot) => {
+      const msg = snapshot.val();
+      const msgDiv = document.createElement('div');
+      msgDiv.textContent = msg.name + ": " + msg.text;
+      messagesDiv.appendChild(msgDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+
+    // Slanje poruke
+    messageForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const text = messageInput.value.trim();
+      if (name && text) {
+        db.ref('messages').push({ name, text });
+        messageInput.value = '';
+      }
+    });
+  </script>
+</body>
+</html>
