@@ -3,107 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <title>ChatZid</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Firebase biblioteke -->
+  <!-- Firebase compat biblioteke -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background: #f4f6f8;
-      color: #333;
-      max-width: 600px;
+      font-family: Arial, sans-serif;
+      max-width: 700px;
       margin: auto;
       padding: 20px;
+      background-color: #f9f9f9;
+      transition: background 0.3s, color 0.3s;
     }
-
-    h1 {
-      text-align: center;
-      color: #2b2b2b;
+    body.dark {
+      background-color: #1a1a1a;
+      color: #eee;
     }
-
     #messages {
-      background: white;
-      border-radius: 10px;
       border: 1px solid #ccc;
       padding: 10px;
-      height: 300px;
-      overflow-y: auto;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-bottom: 15px;
+      height: 400px;
+      overflow-y: scroll;
+      background: #fff;
     }
-
+    body.dark #messages {
+      background: #2c2c2c;
+    }
     .msg {
-      background: #f1f1f1;
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin: 6px 0;
-      position: relative;
+      margin-bottom: 10px;
     }
-
-    .delete-btn {
-      position: absolute;
-      right: 10px;
-      top: 8px;
-      background: #ff5c5c;
-      border: none;
-      border-radius: 4px;
-      color: white;
-      padding: 3px 6px;
-      font-size: 12px;
-      cursor: pointer;
+    .msg small {
+      display: block;
+      font-size: 10px;
+      color: gray;
     }
-
     #message-form {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      gap: 5px;
+      margin-top: 10px;
     }
-
     #message-form input {
+      flex: 1;
       padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 16px;
     }
-
     #message-form button {
       padding: 10px;
-      font-size: 16px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s;
     }
-
-    #message-form button:hover {
-      background-color: #45a049;
+    #admin-panel {
+      display: none;
+      margin-top: 10px;
+    }
+    #typing-indicator {
+      font-size: 12px;
+      color: gray;
+    }
+    .reaction {
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    .delete-btn {
+      color: red;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>💬 ChatZid</h1>
+  <h1>ChatZid</h1>
+
+  <input type="password" id="admin-password" placeholder="Admin lozinka (opciono)" />
+  <button onclick="loginAsAdmin()">Prijavi se kao admin</button>
+  <div id="admin-panel">
+    <button onclick="deleteAllMessages()">🧹 Obriši sve poruke</button>
+  </div>
+  
+  <button onclick="toggleDarkMode()">🌓 Tema</button>
+  <input type="text" id="search" placeholder="🔍 Pretraga..." oninput="filterMessages()">
+
   <div id="messages"></div>
+  <div id="typing-indicator"></div>
+
   <form id="message-form">
-    <input type="text" id="name" placeholder="Vaše ime" required />
+    <input type="text" id="name" placeholder="Vaše ime" />
     <input type="text" id="message" placeholder="Vaša poruka" required />
     <button type="submit">Pošalji</button>
   </form>
 
-  <!-- Zvuk za novu poruku -->
-  <audio id="notif-sound" src="https://notificationsounds.com/storage/sounds/file-sounds-1146-pristine.mp3" preload="auto"></audio>
-
   <script>
+    // 🔧 Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBvW11X6f7R0hnoOA84l5WjY6ZYlEjgWGM",
       authDomain: "chatzid-3f30d.firebaseapp.com",
@@ -117,62 +108,107 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    const room = new URLSearchParams(window.location.search).get("room") || "default";
+    const messagesRef = db.ref(`rooms/${room}/messages`);
+
     const messagesDiv = document.getElementById('messages');
     const messageForm = document.getElementById('message-form');
     const nameInput = document.getElementById('name');
     const messageInput = document.getElementById('message');
-    const notifSound = document.getElementById('notif-sound');
+    const typingDiv = document.getElementById('typing-indicator');
+    const searchInput = document.getElementById('search');
 
-    // Generiši boju iz imena
-    function getColor(name) {
-      let hash = 0;
-      for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    let isAdmin = false;
+    let guestCount = 1;
+
+    // Admin login
+    function loginAsAdmin() {
+      const pass = document.getElementById('admin-password').value;
+      if (pass === 'admin123') {
+        isAdmin = true;
+        document.getElementById('admin-panel').style.display = 'block';
+        alert('Prijavljeni ste kao admin.');
+      } else {
+        alert('Pogrešna lozinka.');
       }
-      const hue = Math.abs(hash) % 360;
-      return `hsl(${hue}, 60%, 70%)`;
     }
 
-    // Prikaz poruka
-    db.ref('messages').on('child_added', (snapshot) => {
-      const msg = snapshot.val();
-      const key = snapshot.key;
+    // Tema
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    }
+    if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
 
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'msg';
+    // Dodavanje poruka
+    messagesRef.on('child_added', snapshot => {
+      const data = snapshot.val();
+      const id = snapshot.key;
 
-      const color = getColor(msg.name);
-      msgDiv.innerHTML = `<strong style="color:${color}">${msg.name}</strong>: ${msg.text}`;
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.innerHTML = `<strong>${data.name}</strong>: ${data.text}
+        <small>${new Date(data.timestamp).toLocaleTimeString()}</small>
+        <span class='reaction' onclick='react("${id}", "👍")'>👍</span>
+        <span class='reaction' onclick='react("${id}", "😂")'>😂</span>
+        <span class='reaction' onclick='react("${id}", "❤️")'>❤️</span>
+        ${isAdmin ? `<span class='delete-btn' onclick='deleteMessage("${id}")'>Obriši</span>` : ''}`;
 
-      // Samo admin vidi dugme za brisanje
-      if (nameInput.value.trim().toLowerCase() === 'admin') {
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Obriši';
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.onclick = () => {
-          if (confirm("Obrisati poruku?")) {
-            db.ref('messages/' + key).remove();
-            messagesDiv.removeChild(msgDiv);
-          }
-        };
-        msgDiv.appendChild(deleteBtn);
-      }
-
-      messagesDiv.appendChild(msgDiv);
+      div.dataset.text = data.text;
+      div.dataset.name = data.name;
+      div.id = `msg-${id}`;
+      messagesDiv.appendChild(div);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-      notifSound.play(); // Zvuk na novu poruku
     });
 
-    // Slanje poruke
-    messageForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = nameInput.value.trim();
-      const text = messageInput.value.trim();
-      if (name && text) {
-        db.ref('messages').push({ name, text });
-        messageInput.value = '';
+    function deleteMessage(id) {
+      if (confirm("Obrisati poruku?")) {
+        messagesRef.child(id).remove();
+        const el = document.getElementById(`msg-${id}`);
+        if (el) el.remove();
       }
+    }
+
+    function deleteAllMessages() {
+      if (confirm("Obrisati SVE poruke?")) {
+        messagesRef.remove();
+        messagesDiv.innerHTML = '';
+      }
+    }
+
+    function react(id, emoji) {
+      alert(`(simulacija) Reagovali ste sa ${emoji} na poruku ${id}`);
+    }
+
+    // Filter poruka
+    function filterMessages() {
+      const val = searchInput.value.toLowerCase();
+      Array.from(messagesDiv.children).forEach(msg => {
+        const txt = (msg.dataset.text + msg.dataset.name).toLowerCase();
+        msg.style.display = txt.includes(val) ? '' : 'none';
+      });
+    }
+
+    // Slanje poruke
+    messageForm.addEventListener('submit', e => {
+      e.preventDefault();
+      let name = nameInput.value.trim();
+      const text = messageInput.value.trim();
+      if (!name) name = `Gost #${guestCount++}`;
+      if (!text) return;
+      messagesRef.push({ name, text, timestamp: Date.now() });
+      messageInput.value = '';
+      db.ref('typing').remove();
+    });
+
+    // Tipkanje indikator
+    messageInput.addEventListener('input', () => {
+      db.ref('typing').set(nameInput.value || `Gost #?`);
+    });
+
+    db.ref('typing').on('value', snap => {
+      const val = snap.val();
+      typingDiv.textContent = val ? `${val} kuca...` : '';
     });
   </script>
 </body>
