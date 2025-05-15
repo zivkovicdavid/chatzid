@@ -1,23 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="sr">
 <head>
   <meta charset="UTF-8">
   <title>ChatZid</title>
-  
-  <!-- ✅ Firebase compat biblioteke -->
+
+  <!-- Firebase biblioteke -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
-    #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
-    #message-form { margin-top: 10px; }
-    #message-form input { width: 80%; padding: 10px; }
-    #message-form button { padding: 10px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f4f6f8;
+      color: #333;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2b2b2b;
+    }
+
+    #messages {
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+    }
+
+    .msg {
+      background: #f1f1f1;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin: 6px 0;
+      position: relative;
+    }
+
+    .delete-btn {
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      background: #ff5c5c;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      padding: 3px 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    #message-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    #message-form input {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    #message-form button {
+      padding: 10px;
+      font-size: 16px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #message-form button:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
-  <h1>ChatZid</h1>
+  <h1>💬 ChatZid</h1>
   <div id="messages"></div>
   <form id="message-form">
     <input type="text" id="name" placeholder="Vaše ime" required />
@@ -25,19 +100,20 @@
     <button type="submit">Pošalji</button>
   </form>
 
+  <!-- Zvuk za novu poruku -->
+  <audio id="notif-sound" src="https://notificationsounds.com/storage/sounds/file-sounds-1146-pristine.mp3" preload="auto"></audio>
+
   <script>
     const firebaseConfig = {
-  apiKey: "AIzaSyBvW11X6f7R0hnoOA84l5WjY6ZYlEjgWGM",
-  authDomain: "chatzid-3f30d.firebaseapp.com",
-  databaseURL: "https://chatzid-3f30d-default-rtdb.firebaseio.com",
-  projectId: "chatzid-3f30d",
-  storageBucket: "chatzid-3f30d.appspot.com",
-  messagingSenderId: "332600317551",
-  appId: "1:332600317551:web:15710d3553991ce3ce1f9a",
-  measurementId: "G-ZK6W0F802V"
-};
+      apiKey: "AIzaSyBvW11X6f7R0hnoOA84l5WjY6ZYlEjgWGM",
+      authDomain: "chatzid-3f30d.firebaseapp.com",
+      databaseURL: "https://chatzid-3f30d-default-rtdb.firebaseio.com",
+      projectId: "chatzid-3f30d",
+      storageBucket: "chatzid-3f30d.appspot.com",
+      messagingSenderId: "332600317551",
+      appId: "1:332600317551:web:15710d3553991ce3ce1f9a"
+    };
 
-    // ✅ Inicijalizacija Firebase-a
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -45,17 +121,50 @@
     const messageForm = document.getElementById('message-form');
     const nameInput = document.getElementById('name');
     const messageInput = document.getElementById('message');
+    const notifSound = document.getElementById('notif-sound');
 
-    // ✅ Prikaz poruka
+    // Generiši boju iz imena
+    function getColor(name) {
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const hue = Math.abs(hash) % 360;
+      return `hsl(${hue}, 60%, 70%)`;
+    }
+
+    // Prikaz poruka
     db.ref('messages').on('child_added', (snapshot) => {
       const msg = snapshot.val();
+      const key = snapshot.key;
+
       const msgDiv = document.createElement('div');
-      msgDiv.textContent = msg.name + ": " + msg.text;
+      msgDiv.className = 'msg';
+
+      const color = getColor(msg.name);
+      msgDiv.innerHTML = `<strong style="color:${color}">${msg.name}</strong>: ${msg.text}`;
+
+      // Samo admin vidi dugme za brisanje
+      if (nameInput.value.trim().toLowerCase() === 'admin') {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Obriši';
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.onclick = () => {
+          if (confirm("Obrisati poruku?")) {
+            db.ref('messages/' + key).remove();
+            messagesDiv.removeChild(msgDiv);
+          }
+        };
+        msgDiv.appendChild(deleteBtn);
+      }
+
       messagesDiv.appendChild(msgDiv);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+      notifSound.play(); // Zvuk na novu poruku
     });
 
-    // ✅ Slanje poruke
+    // Slanje poruke
     messageForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const name = nameInput.value.trim();
