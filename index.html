@@ -204,6 +204,23 @@
   const form = document.getElementById('messageForm');
   const usernameInput = document.getElementById('username');
   const input = document.getElementById('messageInput');
+  let guestNumber = localStorage.getItem('guestNumber');
+if (!guestNumber) {
+  guestNumber = Math.floor(Math.random() * 100000);
+  localStorage.setItem('guestNumber', guestNumber);
+}
+
+let guestNameAssigned = localStorage.getItem('guestName');
+if (!guestNameAssigned) {
+  // Broj gostiju se broji u Firebase
+  const guestCounterRef = db.ref('guestCounter');
+  guestCounterRef.transaction(current => (current || 0) + 1).then(result => {
+    const number = result.snapshot.val();
+    const generatedName = `Gost ${number}`;
+    localStorage.setItem('guestName', generatedName);
+  });
+}
+
   const adminPanel = document.getElementById('adminPanel');
 
   const adminPassword = 'David1902';
@@ -224,6 +241,9 @@
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     let name = usernameInput.value.trim();
+if (!name) {
+  name = localStorage.getItem('guestName') || `Gost ${guestNumber}`;
+}
     const text = input.value.trim();
     if (!text) return;
 
