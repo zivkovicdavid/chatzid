@@ -156,7 +156,11 @@
 
     <div class="admin-panel" id="adminPanel">
       <button onclick="deleteAllMessages()">🗑 Obriši sve poruke</button>
+	    <button onclick="resetGuestCounter()">🔄 Resetuj brojač gostiju</button>
+
     </div>
+	  
+
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -286,6 +290,13 @@
         messagesRef.remove();
       }
     }
+	function resetGuestCounter() {
+  if (confirm('Da li ste sigurni da želite da resetujete brojač gostiju?')) {
+    db.ref('guestCounter').set(0)
+      .then(() => alert('Brojač uspešno resetovan na 0!'))
+      .catch(error => alert('Greška pri resetovanju: ' + error.message));
+  }
+}
   </script>
 </body>
 </html>
