@@ -182,26 +182,54 @@
     </div>
   </div>
 
-  <script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script>
+  // 🔥 Firebase config – zameni sa svojim podacima!
+  const firebaseConfig = {
+    apiKey: "API_KEY",
+    authDomain: "your-app.firebaseapp.com",
+    databaseURL: "https://your-app.firebaseio.com",
+    projectId: "your-app",
+    storageBucket: "your-app.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdefgh"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const messagesRef = db.ref("messages");
+
   const messages = document.getElementById('messages');
   const form = document.getElementById('messageForm');
-  const username = document.getElementById('username');
+  const usernameInput = document.getElementById('username');
   const input = document.getElementById('messageInput');
   const adminPanel = document.getElementById('adminPanel');
 
   const adminPassword = 'David1902';
+  let guestCounter = 0;
+  const guestId = Math.floor(Math.random() * 100000);
 
-  // Učitaj poruke iz localStorage pri pokretanju
-  window.addEventListener('load', () => {
-    const savedMessages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-    savedMessages.forEach(msg => renderMessage(msg));
+  const guestName = () => {
+    guestCounter++;
+    return `Gost ${guestId}`;
+  };
+
+  // Slušaj nove poruke u realnom vremenu
+  messagesRef.on('child_added', snapshot => {
+    const msg = snapshot.val();
+    renderMessage(msg);
   });
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    const name = username.value.trim();
+    let name = usernameInput.value.trim();
     const text = input.value.trim();
-    if (!name || !text) return;
+    if (!text) return;
+
+    if (!name) {
+      name = guestName();
+    }
 
     const msgObj = {
       name,
@@ -209,12 +237,7 @@
       time: new Date().toLocaleTimeString()
     };
 
-    // Dodaj novu poruku u localStorage
-    const allMessages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-    allMessages.push(msgObj);
-    localStorage.setItem('chatMessages', JSON.stringify(allMessages));
-
-    renderMessage(msgObj);
+    messagesRef.push(msgObj);
     input.value = '';
   });
 
@@ -272,7 +295,7 @@
   function deleteAllMessages() {
     if (confirm('Da li ste sigurni da želite da obrišete sve poruke?')) {
       messages.innerHTML = '';
-      localStorage.removeItem('chatMessages');
+      messagesRef.remove();
     }
   }
 </script>
