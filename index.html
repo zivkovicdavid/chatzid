@@ -14,7 +14,6 @@
       --primary: #6c63ff;
       --border-radius: 12px;
     }
-
     body {
       margin: 0;
       padding: 0;
@@ -23,12 +22,10 @@
       color: var(--text-light);
       transition: background-color 0.3s, color 0.3s;
     }
-
     .dark {
       background-color: var(--bg-dark);
       color: var(--text-dark);
     }
-
     .container {
       max-width: 700px;
       margin: 30px auto;
@@ -37,34 +34,28 @@
       border-radius: var(--border-radius);
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
     }
-
     .dark .container {
       background-color: #2c2c3e;
     }
-
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-
     .logo {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-
     .logo img {
       width: 32px;
       height: 32px;
     }
-
     .room-name {
       text-align: center;
       margin-bottom: 10px;
       font-weight: bold;
     }
-
     #messages {
       border: 1px solid #ccc;
       height: 300px;
@@ -73,27 +64,22 @@
       background: #fafafa;
       border-radius: var(--border-radius);
     }
-
     .dark #messages {
       background: #333344;
     }
-
     .message {
       margin-bottom: 12px;
       padding: 8px;
       border-radius: var(--border-radius);
       background: #e4e4e4;
     }
-
     .dark .message {
       background: #444459;
     }
-
     .timestamp {
       font-size: 0.8em;
       color: gray;
     }
-
     .reaction-buttons button {
       margin-left: 5px;
       font-size: 14px;
@@ -102,46 +88,38 @@
       border: none;
       cursor: pointer;
     }
-
     form {
       margin-top: 15px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-
     input, button {
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: var(--border-radius);
       font-size: 16px;
     }
-
     input:focus, button:focus {
       outline: none;
       border-color: var(--primary);
     }
-
     button {
       background: var(--primary);
       color: white;
       cursor: pointer;
       transition: 0.3s;
     }
-
     button:hover {
       background: #574fe3;
     }
-
     .admin-panel {
       display: none;
       margin-top: 10px;
     }
-
     .admin-panel.active {
       display: block;
     }
-
     .dark-mode-toggle {
       background: transparent;
       border: none;
@@ -149,7 +127,6 @@
       cursor: pointer;
       font-size: 14px;
     }
-
   </style>
 </head>
 <body>
@@ -183,138 +160,132 @@
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-<script>
-  // 🔥 Firebase config – zameni sa svojim podacima!
-  const firebaseConfig = {
-    apiKey: "API_KEY",
-    authDomain: "your-app.firebaseapp.com",
-    databaseURL: "https://chatzid-3f30d-default-rtdb.firebaseio.com/",
-    projectId: "your-app",
-    storageBucket: "your-app.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdefgh"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const messagesRef = db.ref("messages");
-
-  const messages = document.getElementById('messages');
-  const form = document.getElementById('messageForm');
-  const usernameInput = document.getElementById('username');
-  const input = document.getElementById('messageInput');
-  let guestNumber = localStorage.getItem('guestNumber');
-if (!guestNumber) {
-  guestNumber = Math.floor(Math.random() * 100000);
-  localStorage.setItem('guestNumber', guestNumber);
-}
-
-let guestNameAssigned = localStorage.getItem('guestName');
-if (!guestNameAssigned) {
-  // Broj gostiju se broji u Firebase
-  const guestCounterRef = db.ref('guestCounter');
-  guestCounterRef.transaction(current => (current || 0) + 1).then(result => {
-    const number = result.snapshot.val();
-    const generatedName = `Gost ${number}`;
-    localStorage.setItem('guestName', generatedName);
-  });
-}
-
-  const adminPanel = document.getElementById('adminPanel');
-
-  const adminPassword = 'David1902';
-  let guestCounter = 0;
-  const guestId = Math.floor(Math.random() * 100000);
-
-  
-
-  // Slušaj nove poruke u realnom vremenu
-  messagesRef.on('child_added', snapshot => {
-    const msg = snapshot.val();
-    renderMessage(msg);
-  });
-
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    let name = usernameInput.value.trim();
-if (!name) {
-  name = localStorage.getItem('guestName') || `Gost ${guestNumber}`;
-}
-    const text = input.value.trim();
-    if (!text) return;
-
-    if (!name) {
-      name = guestName();
-    }
-
-    const msgObj = {
-      name,
-      text,
-      time: new Date().toLocaleTimeString()
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <script>
+    // Firebase konfiguracija (zameni svojim podacima)
+    const firebaseConfig = {
+       apiKey: "AIzaSyBvW11X6f7R0hnoOA84l5WjY6ZYlEjgWGM",
+  authDomain: "chatzid-3f30d.firebaseapp.com",
+  databaseURL: "https://chatzid-3f30d-default-rtdb.firebaseio.com",
+  projectId: "chatzid-3f30d",
+  storageBucket: "chatzid-3f30d.firebasestorage.app",
+  messagingSenderId: "332600317551",
+  appId: "1:332600317551:web:15710d3553991ce3ce1f9a",
+  measurementId: "G-ZK6W0F802V"
     };
 
-    messagesRef.push(msgObj);
-    input.value = '';
-  });
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const messagesRef = db.ref("messages");
 
-  function renderMessage({ name, text, time }) {
-    const div = document.createElement('div');
-    div.className = 'message';
+    const messages = document.getElementById('messages');
+    const form = document.getElementById('messageForm');
+    const usernameInput = document.getElementById('username');
+    const input = document.getElementById('messageInput');
+    const adminPanel = document.getElementById('adminPanel');
+    const adminPassword = 'David1902';
 
-    const nameElem = document.createElement('strong');
-    nameElem.textContent = name;
+    let guestName = localStorage.getItem('guestName');
 
-    const textElem = document.createElement('span');
-    textElem.textContent = `: ${text}`;
+    async function assignGuestName() {
+      if (!guestName) {
+        const guestCounterRef = db.ref('guestCounter');
+        const result = await guestCounterRef.transaction(current => (current || 0) + 1);
+        const number = result.snapshot.val();
+        guestName = `Gost ${number}`;
+        localStorage.setItem('guestName', guestName);
+      }
+    }
 
-    const timeElem = document.createElement('div');
-    timeElem.className = 'timestamp';
-    timeElem.textContent = time;
+    // Poziv kada se stranica učita
+    assignGuestName();
 
-    const reactions = document.createElement('div');
-    reactions.className = 'reaction-buttons';
-    ['👍', '😂', '❤️'].forEach(emoji => {
-      const btn = document.createElement('button');
-      btn.textContent = emoji;
-      btn.onclick = () => {
-        btn.textContent = emoji + '✔';
-        btn.disabled = true;
-      };
-      reactions.appendChild(btn);
+    messagesRef.on('child_added', snapshot => {
+      const msg = snapshot.val();
+      renderMessage(msg);
     });
 
-    div.appendChild(nameElem);
-    div.appendChild(textElem);
-    div.appendChild(document.createElement('br'));
-    div.appendChild(timeElem);
-    div.appendChild(reactions);
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      let name = usernameInput.value.trim();
+      if (!name) {
+        name = localStorage.getItem('guestName');
+        if (!name) {
+          await assignGuestName();
+          name = guestName;
+        }
+      }
 
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-  }
+      const text = input.value.trim();
+      if (!text) return;
 
-  function toggleDarkMode() {
-    document.body.classList.toggle('dark');
-  }
+      const msgObj = {
+        name,
+        text,
+        time: new Date().toLocaleTimeString()
+      };
 
-  function loginAdmin() {
-    const passwordInput = document.getElementById('adminPassword');
-    if (passwordInput.value === adminPassword) {
-      adminPanel.classList.add('active');
-      alert('Uspešno prijavljen kao admin!');
-    } else {
-      alert('Pogrešna šifra!');
+      messagesRef.push(msgObj);
+      input.value = '';
+    });
+
+    function renderMessage({ name, text, time }) {
+      const div = document.createElement('div');
+      div.className = 'message';
+
+      const nameElem = document.createElement('strong');
+      nameElem.textContent = name;
+
+      const textElem = document.createElement('span');
+      textElem.textContent = `: ${text}`;
+
+      const timeElem = document.createElement('div');
+      timeElem.className = 'timestamp';
+      timeElem.textContent = time;
+
+      const reactions = document.createElement('div');
+      reactions.className = 'reaction-buttons';
+      ['👍', '😂', '❤️'].forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.textContent = emoji;
+        btn.onclick = () => {
+          btn.textContent = emoji + '✔';
+          btn.disabled = true;
+        };
+        reactions.appendChild(btn);
+      });
+
+      div.appendChild(nameElem);
+      div.appendChild(textElem);
+      div.appendChild(document.createElement('br'));
+      div.appendChild(timeElem);
+      div.appendChild(reactions);
+
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
     }
-    passwordInput.value = '';
-  }
 
-  function deleteAllMessages() {
-    if (confirm('Da li ste sigurni da želite da obrišete sve poruke?')) {
-      messages.innerHTML = '';
-      messagesRef.remove();
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
     }
-  }
-</script>
+
+    function loginAdmin() {
+      const passwordInput = document.getElementById('adminPassword');
+      if (passwordInput.value === adminPassword) {
+        adminPanel.classList.add('active');
+        alert('Uspešno prijavljen kao admin!');
+      } else {
+        alert('Pogrešna šifra!');
+      }
+      passwordInput.value = '';
+    }
+
+    function deleteAllMessages() {
+      if (confirm('Da li ste sigurni da želite da obrišete sve poruke?')) {
+        messages.innerHTML = '';
+        messagesRef.remove();
+      }
+    }
+  </script>
 </body>
 </html>
