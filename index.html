@@ -207,6 +207,22 @@
     // Umesto da u kodu držimo plain text šifru, držimo MD5 hash.
     // Hash dole odgovara originalnoj šifri "David1902"
     const correctHash = 'b382d8e9a37fd44add80c296aa314d45';
+    function loginAdmin() {
+  const passwordInput = document.getElementById('adminPassword');
+  const inputHash = md5(passwordInput.value.trim());
+
+  console.log('Uneti hash:', inputHash);
+  console.log('Očekivani hash:', correctHash);
+
+  if (inputHash === correctHash) {
+    adminPanel.classList.add('active');
+    alert('Uspešno prijavljen kao admin!');
+  } else {
+    alert('Pogrešna šifra!');
+  }
+  passwordInput.value = '';
+}
+
 
     let guestName = localStorage.getItem('guestName');
 
@@ -377,5 +393,6 @@
   </script>
 </body>
 </html>
+
 
 
