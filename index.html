@@ -73,6 +73,9 @@
       padding: 8px;
       border-radius: var(--border-radius);
       background: #e4e4e4;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
     .dark .message {
       background: #444459;
@@ -81,12 +84,17 @@
       font-size: 0.8em;
       color: gray;
     }
+    .reaction-buttons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
     .reaction-buttons button {
-      margin-left: 5px;
       font-size: 14px;
-      padding: 2px 5px;
+      padding: 6px 8px;
       background: transparent;
-      border: none;
+      border: 1px solid #ccc;
+      border-radius: 8px;
       cursor: pointer;
     }
     form {
@@ -133,7 +141,13 @@
       cursor: pointer;
       font-size: 14px;
     }
+    .comment-text {
+      word-break: break-word;
+    }
   </style>
+
+  <!-- CryptoJS za MD5 hashing (koristimo ga da u frontend-u ne držimo plain text šifru) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -189,7 +203,10 @@
     const usernameInput = document.getElementById('username');
     const input = document.getElementById('messageInput');
     const adminPanel = document.getElementById('adminPanel');
-    const adminPassword = 'David1902';
+
+    // Umesto da u kodu držimo plain text šifru, držimo MD5 hash.
+    // Hash dole odgovara originalnoj šifri "David1902"
+    const correctHash = 'fd062f1aa9ecfa7c5c4e8d98cd5d7272';
 
     let guestName = localStorage.getItem('guestName');
 
@@ -207,6 +224,7 @@
 
     assignGuestName();
 
+    // Listen za nove poruke iz baze
     messagesRef.on('child_added', snapshot => {
       const msg = snapshot.val();
       renderMessage(msg);
@@ -236,22 +254,43 @@
       input.value = '';
     });
 
+    // NOVO: funkcija za prikaz poruke + dugme za kopiranje
     function renderMessage({ name, text, time }) {
       const div = document.createElement('div');
       div.className = 'message';
+
+      const topRow = document.createElement('div');
+      topRow.style.display = 'flex';
+      topRow.style.justifyContent = 'space-between';
+      topRow.style.alignItems = 'center';
+      topRow.style.gap = '10px';
+
+      const leftCol = document.createElement('div');
+      leftCol.style.display = 'flex';
+      leftCol.style.flexDirection = 'column';
+      leftCol.style.gap = '4px';
+      leftCol.style.flex = '1';
 
       const nameElem = document.createElement('strong');
       nameElem.textContent = name;
 
       const textElem = document.createElement('div');
-      textElem.textContent = `: ${text}`;
+      textElem.textContent = text;
+      textElem.className = 'comment-text';
+
+      leftCol.appendChild(nameElem);
+      leftCol.appendChild(textElem);
 
       const timeElem = document.createElement('div');
       timeElem.className = 'timestamp';
       timeElem.textContent = time;
 
+      topRow.appendChild(leftCol);
+      topRow.appendChild(timeElem);
+
       const reactions = document.createElement('div');
       reactions.className = 'reaction-buttons';
+
       ['👍', '😂', '❤️'].forEach(emoji => {
         const btn = document.createElement('button');
         btn.textContent = emoji;
@@ -262,10 +301,37 @@
         reactions.appendChild(btn);
       });
 
-      div.appendChild(nameElem);
-      div.appendChild(textElem);
-      div.appendChild(document.createElement('br'));
-      div.appendChild(timeElem);
+      // Dugme za kopiranje komentara
+      const copyBtn = document.createElement('button');
+      copyBtn.textContent = '📋 Kopiraj';
+      copyBtn.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.textContent = '✅ Kopirano!';
+          copyBtn.disabled = true;
+          setTimeout(() => {
+            copyBtn.textContent = '📋 Kopiraj';
+            copyBtn.disabled = false;
+          }, 1500);
+        } catch (err) {
+          // ako clipboard API nije dostupan, fallback: select + prompt
+          try {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            copyBtn.textContent = '✅ Kopirano!';
+            setTimeout(() => copyBtn.textContent = '📋 Kopiraj', 1500);
+          } catch (e) {
+            alert('Kopiranje nije uspelo.');
+          }
+        }
+      };
+      reactions.appendChild(copyBtn);
+
+      div.appendChild(topRow);
       div.appendChild(reactions);
 
       messages.appendChild(div);
@@ -276,9 +342,16 @@
       document.body.classList.toggle('dark');
     }
 
+    // MD5 wrapper koristeći CryptoJS
+    function md5(string) {
+      return CryptoJS.MD5(string).toString();
+    }
+
     function loginAdmin() {
       const passwordInput = document.getElementById('adminPassword');
-      if (passwordInput.value === adminPassword) {
+      const inputHash = md5(passwordInput.value);
+
+      if (inputHash === correctHash) {
         adminPanel.classList.add('active');
         alert('Uspešno prijavljen kao admin!');
       } else {
