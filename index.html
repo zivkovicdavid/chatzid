@@ -209,12 +209,17 @@
     const correctHash = 'e0244cef0ff036b893d53735f89c42d0';
     function loginAdmin() {
   const passwordInput = document.getElementById('adminPassword');
+  // uklanjamo nepotrebne razmake i pravimo hash od korisnikovog unosa
   const inputHash = md5(passwordInput.value.trim());
 
-  console.log('Uneti hash:', inputHash);
-  console.log('Očekivani hash:', correctHash);
+  // generišemo očekivani hash za šifru koju želiš: "David0206"
+  const expectedHash = md5('David0206');
 
-  if (inputHash === correctHash) {
+  // debug (možeš ukloniti posle testiranja)
+  console.log('Uneti hash:', inputHash);
+  console.log('Očekivani hash za "David0206":', expectedHash);
+
+  if (inputHash === expectedHash) {
     adminPanel.classList.add('active');
     alert('Uspešno prijavljen kao admin!');
   } else {
@@ -222,6 +227,7 @@
   }
   passwordInput.value = '';
 }
+
 
 
     let guestName = localStorage.getItem('guestName');
@@ -393,6 +399,7 @@
   </script>
 </body>
 </html>
+
 
 
 
