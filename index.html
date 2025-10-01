@@ -196,9 +196,11 @@
     async function assignGuestName() {
       if (!guestName) {
         const guestCounterRef = db.ref('guestCounter');
-        const result = await guestCounterRef.transaction(current => (current || 0) + 1);
-        const number = result.snapshot.val();
-        guestName = `Gost ${number}`;
+        const snapshot = await guestCounterRef.once('value');
+        let current = snapshot.val() || 0;
+        const next = current + 1;
+        await guestCounterRef.set(next);
+        guestName = `Gost ${next}`;
         localStorage.setItem('guestName', guestName);
       }
     }
@@ -242,7 +244,6 @@
       nameElem.textContent = name;
 
       const textElem = document.createElement('div');
-      // Koristi textContent umesto innerHTML da bi sprečio izvršavanje HTML koda
       textElem.textContent = `: ${text}`;
 
       const timeElem = document.createElement('div');
