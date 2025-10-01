@@ -242,7 +242,8 @@
       nameElem.textContent = name;
 
       const textElem = document.createElement('div');
-      textElem.innerHTML = `: ${text.replace(/\n/g, '<br>')}`;
+      // Koristi textContent umesto innerHTML da bi sprečio izvršavanje HTML koda
+      textElem.textContent = `: ${text}`;
 
       const timeElem = document.createElement('div');
       timeElem.className = 'timestamp';
