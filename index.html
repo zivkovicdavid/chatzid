@@ -63,6 +63,7 @@
       padding: 10px;
       background: #fafafa;
       border-radius: var(--border-radius);
+      white-space: pre-wrap;
     }
     .dark #messages {
       background: #333344;
@@ -94,13 +95,18 @@
       flex-direction: column;
       gap: 10px;
     }
-    input, button {
+    input, button, textarea {
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: var(--border-radius);
       font-size: 16px;
+      font-family: inherit;
     }
-    input:focus, button:focus {
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    input:focus, button:focus, textarea:focus {
       outline: none;
       border-color: var(--primary);
     }
@@ -145,7 +151,7 @@
 
     <form id="messageForm">
       <input type="text" id="username" placeholder="Vaše ime" />
-      <input type="text" id="messageInput" placeholder="Unesite poruku" required />
+      <textarea id="messageInput" placeholder="Unesite poruku" required></textarea>
       <button type="submit">Pošalji</button>
     </form>
 
@@ -156,26 +162,22 @@
 
     <div class="admin-panel" id="adminPanel">
       <button onclick="deleteAllMessages()">🗑 Obriši sve poruke</button>
-	    <button onclick="resetGuestCounter()">🔄 Resetuj brojač gostiju</button>
-
+      <button onclick="resetGuestCounter()">🔄 Resetuj brojač gostiju</button>
     </div>
-	  
-
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
   <script>
-    // Firebase konfiguracija (zameni svojim podacima)
     const firebaseConfig = {
-       apiKey: "AIzaSyBvW11X6f7R0hnoOA84l5WjY6ZYlEjgWGM",
-  authDomain: "chatzid-3f30d.firebaseapp.com",
-  databaseURL: "https://chatzid-3f30d-default-rtdb.firebaseio.com",
-  projectId: "chatzid-3f30d",
-  storageBucket: "chatzid-3f30d.firebasestorage.app",
-  messagingSenderId: "332600317551",
-  appId: "1:332600317551:web:15710d3553991ce3ce1f9a",
-  measurementId: "G-ZK6W0F802V"
+      apiKey: "AIzaSyBvW11X6f7R0hnoOA84l5WjY6ZYlEjgWGM",
+      authDomain: "chatzid-3f30d.firebaseapp.com",
+      databaseURL: "https://chatzid-3f30d-default-rtdb.firebaseio.com",
+      projectId: "chatzid-3f30d",
+      storageBucket: "chatzid-3f30d.appspot.com",
+      messagingSenderId: "332600317551",
+      appId: "1:332600317551:web:15710d3553991ce3ce1f9a",
+      measurementId: "G-ZK6W0F802V"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -201,7 +203,6 @@
       }
     }
 
-    // Poziv kada se stranica učita
     assignGuestName();
 
     messagesRef.on('child_added', snapshot => {
@@ -240,8 +241,8 @@
       const nameElem = document.createElement('strong');
       nameElem.textContent = name;
 
-      const textElem = document.createElement('span');
-      textElem.textContent = `: ${text}`;
+      const textElem = document.createElement('div');
+      textElem.innerHTML = `: ${text.replace(/\n/g, '<br>')}`;
 
       const timeElem = document.createElement('div');
       timeElem.className = 'timestamp';
@@ -290,13 +291,14 @@
         messagesRef.remove();
       }
     }
-	function resetGuestCounter() {
-  if (confirm('Da li ste sigurni da želite da resetujete brojač gostiju?')) {
-    db.ref('guestCounter').set(0)
-      .then(() => alert('Brojač uspešno resetovan na 0!'))
-      .catch(error => alert('Greška pri resetovanju: ' + error.message));
-  }
-}
+
+    function resetGuestCounter() {
+      if (confirm('Da li ste sigurni da želite da resetujete brojač gostiju?')) {
+        db.ref('guestCounter').set(0)
+          .then(() => alert('Brojač uspešno resetovan na 0!'))
+          .catch(error => alert('Greška pri resetovanju: ' + error.message));
+      }
+    }
   </script>
 </body>
 </html>
